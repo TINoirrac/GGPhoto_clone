@@ -4,7 +4,7 @@ import FloatingButton from '../components/FloatingButton'
 import { launchImageLibrary } from 'react-native-image-picker'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 
-const Stack=createNativeStackNavigator()
+const Stack = createNativeStackNavigator()
 
 const DATA = [
   {
@@ -48,7 +48,9 @@ const Home = ({ navigation }) => {
   const renderItem = ({ item }) => {
     return (
       <View style={styles.item}>
-        <Image source={{ uri: item }} style={styles.itemImage} />
+        <TouchableOpacity onPress={() => navigation.navigate('ImageView', { item })}>
+          <Image source={{ uri: item }} style={styles.itemImage} />
+        </TouchableOpacity>
       </View>
     );
   };
