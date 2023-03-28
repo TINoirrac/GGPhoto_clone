@@ -26,23 +26,18 @@ const DATA = [
 ]
 
 const Home = ({ navigation }) => {
-  // -------------------------------------------------------------
-  // Firebase
-
-  // List of media need to send to Storage
-  const [media, setMedia] = useState([]);
+  // Firebase-------------------------------------------------------------
   // List of media retrieve from Storage
   const [imageList, setImageList] = useState([]);
 
   // Send selected media to Storage
-  const upload = async () => {
+  const upload = async (media) => {
     console.log("upload:")
     console.log(media)
     media.forEach(uri => {
-      submitData(uri)
+      if (uri != null)
+        submitData(uri)
     });
-
-    setMedia([]);
   }
 
   // Send single media to Storage
@@ -106,8 +101,7 @@ const Home = ({ navigation }) => {
         // Uh-oh, an error occurred!
       });
   }
-
-  // -------------------------------------------------------------
+  //-------------------------------------------------------------
 
   // Add media button
   const handlerPress = async () => {
@@ -116,17 +110,15 @@ const Home = ({ navigation }) => {
       {
         mediaType: 'all',
         usedCameraButton: false,
-        
       }
     ).then((responses) => {
       console.log("Image picker:")
+      let media = []
       responses.forEach(response => {
         console.log(response.realPath)
-        // Firebase
-        setMedia(prevMedia => [...prevMedia, 'file://' + response.realPath])
-        // UI
-        DATA[1].data[0].list.push('file://' + response.realPath)
+        media.push('file://' + response.realPath)
       })
+      upload(media)
     }).catch((err) => {
       console.log(err.message)
     })
@@ -169,7 +161,6 @@ const Home = ({ navigation }) => {
         }}
       />
       <FloatingButton onPress={handlerPress} text='+' />
-      <Button title="Upload" onPress={upload}/>
     </View>
   )
 }
