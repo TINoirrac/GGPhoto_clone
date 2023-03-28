@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import FloatingButton from '../components/FloatingButton'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { storage } from '../components/StorageConfig';
+import { ref, uploadBytes, listAll, getDownloadURL } from "firebase/storage";
 import MultipleImagePicker from '@baronha/react-native-multiple-image-picker';
 
 const Stack = createNativeStackNavigator()
@@ -34,11 +35,13 @@ const Home = ({ navigation }) => {
 
   // Send selected media to Storage
   const upload = async () => {
-    console.log("upload: "+media)
-    media.forEach(element => {
-      uri = element.uri
-      submitData(uri)
-    });
+    console.log("upload:")
+    console.log(media)
+    // media.forEach(element => {
+    //   uri = element.uri
+    //   submitData(uri)
+    // });
+    submitData(media)
 
     setMedia([]);
   }
@@ -57,7 +60,7 @@ const Home = ({ navigation }) => {
       };
       xhr.onerror = function (e) {
         console.log(e);
-        reject(new TypeError("Network request failed"));
+        reject(new TypeError("Blob throw: Network request failed"));
       };
       xhr.responseType = "blob";
       xhr.open("GET", uri, true);
@@ -109,22 +112,26 @@ const Home = ({ navigation }) => {
 
   // Add media button
   const handlerPress = async () => {
-        // Multi images picker
-        const response = await MultipleImagePicker.openPicker(
-          {
-            mediaType: 'all',
-            usedCameraButton: false,
-            
-          }
-        );
-        if (response) {
-          console.log("Image picker: "+response)
-          // Firebase
-          setMedia(response.realPath)
-          // UI
-          DATA[1].data[0].list.push(response.realPath)
-        }
+    // Multi images picker
+    const response = await MultipleImagePicker.openPicker(
+      {
+        mediaType: 'all',
+        usedCameraButton: false,
+        
       }
+    ).then((response) => {
+      if (response) {
+        console.log("Image picker:")
+        console.log(response[0].realPath)
+        // Firebase
+        setMedia('file://' + response[0].realPath)
+        // UI
+        DATA[1].data[0].list.push('file://' + response[0].realPath)
+      }
+    }).catch((err) => {
+      console.log(err.message)
+    })
+  }
 
   const renderSectionHeader = ({ section }) => {
     return <Text style={styles.sectionHeader}>{section.title}</Text>;
@@ -147,7 +154,8 @@ const Home = ({ navigation }) => {
         keyExtractor={(item, index) => item + index}
         renderSectionHeader={renderSectionHeader}
         renderItem={({ item }) => {
-          console.log("UI: "+item.list)
+          console.log("UI:")
+          console.log(item.list)
           return (
             <View style={styles.row}>
               <FlatList
