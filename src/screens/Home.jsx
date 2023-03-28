@@ -2,9 +2,10 @@ import { View, Text, SectionList, Image, ScrollView, FlatList, StyleSheet, Modal
 import React, { useState } from 'react'
 import FloatingButton from '../components/FloatingButton'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { storage } from '../components/StorageConfig';
+import { rootStorage } from '../components/StorageConfig';
 import { ref, uploadBytes, listAll, getDownloadURL } from "firebase/storage";
 import MultipleImagePicker from '@baronha/react-native-multiple-image-picker';
+import uuid from 'react-native-uuid';
 
 const Stack = createNativeStackNavigator()
 
@@ -37,11 +38,9 @@ const Home = ({ navigation }) => {
   const upload = async () => {
     console.log("upload:")
     console.log(media)
-    // media.forEach(element => {
-    //   uri = element.uri
-    //   submitData(uri)
-    // });
-    submitData(media)
+    media.forEach(uri => {
+      submitData(uri)
+    });
 
     setMedia([]);
   }
@@ -51,8 +50,6 @@ const Home = ({ navigation }) => {
     console.log('Submitting data');
 
     // Create blob file
-    // Why are we using XMLHttpRequest? See:
-    // https://github.com/expo/expo/issues/2402#issuecomment-443726662
     const blob = await new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.onload = function () {
@@ -67,11 +64,13 @@ const Home = ({ navigation }) => {
       xhr.send(null);
     });
 
-    // Create a reference to media
-    const storageRef = ref(storage, "media");
+    // Create reference to child storage
+    const childRef = ref(rootStorage, new Date().toDateString());
+    // Create reference to media
+    const mediaRef = ref(childRef, uuid.v4());
 
     // 'file' comes from the Blob or File API
-    uploadBytes(storageRef, blob)
+    uploadBytes(mediaRef, blob)
       .then((snapshot) => {
         console.log('Submitted a blob or file!');
       })
@@ -88,7 +87,7 @@ const Home = ({ navigation }) => {
     setImageList([]);
 
     // Create a reference under which you want to list
-    const listRef = ref(storage, '');
+    const listRef = ref(rootStorage, '');
 
     // Find all the prefixes and items.
     listAll(listRef)
@@ -113,21 +112,21 @@ const Home = ({ navigation }) => {
   // Add media button
   const handlerPress = async () => {
     // Multi images picker
-    const response = await MultipleImagePicker.openPicker(
+    await MultipleImagePicker.openPicker(
       {
         mediaType: 'all',
         usedCameraButton: false,
         
       }
-    ).then((response) => {
-      if (response) {
-        console.log("Image picker:")
-        console.log(response[0].realPath)
+    ).then((responses) => {
+      console.log("Image picker:")
+      responses.forEach(response => {
+        console.log(response.realPath)
         // Firebase
-        setMedia('file://' + response[0].realPath)
+        setMedia(prevMedia => [...prevMedia, 'file://' + response.realPath])
         // UI
-        DATA[1].data[0].list.push('file://' + response[0].realPath)
-      }
+        DATA[1].data[0].list.push('file://' + response.realPath)
+      })
     }).catch((err) => {
       console.log(err.message)
     })
