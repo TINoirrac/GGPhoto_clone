@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "221892027600",
+    "firebase_url": "https://cloudphotos-11ef9-default-rtdb.firebaseio.com",
+    "project_id": "cloudphotos-11ef9",
+    "storage_bucket": "cloudphotos-11ef9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:221892027600:android:705f03ce297d3e5de16ad5",
+        "android_client_info": {
+          "package_name": "com.ggphoto_clone"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "221892027600-os3ahi2d8gpnhfabasqurmt7bmldhgq7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBBbH8kKOfv7df8vO-5-hL2MRK6nr6SwZo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "221892027600-os3ahi2d8gpnhfabasqurmt7bmldhgq7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
