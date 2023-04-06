@@ -19,27 +19,28 @@ const DATA = [
   },
   {
     title: 'Pictures',
-    data: [
-      {
-        list: ['https://reactnative.dev/img/tiny_logo.png', 'https://reactnative.dev/img/tiny_logo.png', 'https://reactnative.dev/img/tiny_logo.png', 'https://reactnative.dev/img/tiny_logo.png']
-      }
-    ]
+    data: [['https://reactnative.dev/img/tiny_logo.png', 'https://reactnative.dev/img/tiny_logo.png', 'https://reactnative.dev/img/tiny_logo.png', 'https://reactnative.dev/img/tiny_logo.png']]
   }
 ]
 
 const ImageList = ({ navigation }) => {
   // Firebase-------------------------------------------------------------
   // List of media retrieve from Storage
-  const [imageList, setImageList] = useState([]);
+  const [refresh, setRefresh] = useState(null);
+
+  useEffect(() => {
+    refreshMediaList()
+  }, [refresh])
 
   // Send selected media to Storage
   const upload = async (media) => {
     console.log("upload:")
     console.log(media)
-    media.forEach(uri => {
+    await media.forEach(uri => {
       if (uri != null)
         submitData(uri)
     });
+    setRefresh(new Date().toTimeString())
   }
 
   // Send single media to Storage
@@ -48,7 +49,7 @@ const ImageList = ({ navigation }) => {
 
     // Create blob file
     const blob = await new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();ImageList
+      const xhr = new XMLHttpRequest();
       xhr.onload = function () {
         resolve(xhr.response);
       };
@@ -80,30 +81,40 @@ const ImageList = ({ navigation }) => {
   }
 
   // Receive all Media from Storage
-  const refreshImageList = () => {
-    setImageList([]);
-
-    // Create a reference under which you want to list
-    const listRef = ref(rootStorage, '');
-
-    // Find all the prefixes and items.
-    listAll(listRef)
-      .then((res) => {
-        // res.prefixes.forEach((folderRef) => {
-        //   // All the prefixes under listRef.
-        //   // You may call listAll() recursively on them.
-        // });
-        res.items.forEach((itemRef) => {
-          // All the items under listRef, append it to imageList
-          getDownloadURL(itemRef).then((url) => {
-            setImageList((prev) => [...prev, url])
-          });
-        });
-      }).catch((error) => {
-        // Uh-oh, an error occurred!
+  const refreshMediaList = async () => {
+    try {
+      const listRef = ref(rootStorage, '');
+      const res = await listAll(listRef);
+      const storageList = [];
+  
+      for (const folderRef of res.prefixes) {
+        console.log(folderRef.name);
+        const itemList = [];
+        const folderRes = await listAll(folderRef);
+        
+        for (const itemRef of folderRes.items) {
+          const url = await getDownloadURL(itemRef);
+          console.log(url);
+          itemList.push(url);
+        }
+  
+        console.log(itemList);
+        storageList.push(itemList);
+      }
+  
+      console.log(storageList);
+      DATA.push({
+        title: 'Storage',
+        data: storageList
       });
+    } catch (error) {
+      console.log("Error: " + error);
+    }
   }
   //-------------------------------------------------------------
+  const Refresh=()=>{
+    setRefresh(new Date().toTimeString())
+  }
 
   // Add media button
   const handlerPress = async () => {
@@ -130,12 +141,12 @@ const ImageList = ({ navigation }) => {
     return <Text style={styles.sectionHeader}>{section.title}</Text>;
   };
 
-  displayList=[]
+  displayList = []
 
-  const renderItem = ({ item ,index}) => {
+  const renderItem = ({ item, index }) => {
     return (
       <View style={styles.item}>
-        <TouchableOpacity onPress={() => navigation.navigate('ImageDetail', { images:displayList,initialIndex:index })}>
+        <TouchableOpacity onPress={() => navigation.navigate('ImageDetail', { images: displayList, initialIndex: index })}>
           <Image source={{ uri: item }} style={styles.itemImage} />
         </TouchableOpacity>
       </View>
@@ -150,13 +161,13 @@ const ImageList = ({ navigation }) => {
           keyExtractor={(item, index) => item + index}
           renderSectionHeader={renderSectionHeader}
           renderItem={({ item }) => {
-            displayList=item.list
+            displayList = item
             console.log("UI:")
-            console.log(item.list)
+            console.log(item)
             return (
               <View style={styles.row}>
                 <FlatList
-                  data={item.list}
+                  data={item}
                   renderItem={renderItem}
                   keyExtractor={(item, index) => item + index}
                   numColumns={4}
@@ -167,6 +178,7 @@ const ImageList = ({ navigation }) => {
           }}
         />
         <FloatingButton onPress={handlerPress} text='+' />
+        <Button onPress={Refresh} title='refresh'/>
       </View>
     </View>
   )
