@@ -1,5 +1,5 @@
 import { View, Text, SectionList, Image, ScrollView, FlatList, StyleSheet, Modal, TouchableWithoutFeedback, TouchableOpacity, Button } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import FloatingButton from '../components/FloatingButton'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { rootStorage } from '../components/StorageConfig';
@@ -8,6 +8,7 @@ import MultipleImagePicker from '@baronha/react-native-multiple-image-picker';
 import uuid from 'react-native-uuid';
 import ImageView from './ImageView';
 import ImageDetail from './ImageDetail';
+import AllList from '../components/AllList';
 
 const Stack = createNativeStackNavigator()
 
@@ -27,6 +28,7 @@ const ImageList = ({ navigation }) => {
   // Firebase-------------------------------------------------------------
   // List of media retrieve from Storage
   const [refresh, setRefresh] = useState(null);
+  const [storageList, setStorageList] = useState([])
 
   useEffect(() => {
     refreshMediaList()
@@ -85,36 +87,36 @@ const ImageList = ({ navigation }) => {
     try {
       const listRef = ref(rootStorage, '');
       const res = await listAll(listRef);
-      const storageList = [];
-  
+      const folderList = []
       for (const folderRef of res.prefixes) {
-        console.log(folderRef.name);
-        const itemList = [];
+        // console.log(folderRef.name);
+        const itemList = {
+          title: folderRef.name,
+          data: []
+        };
         const folderRes = await listAll(folderRef);
-        
+
         for (const itemRef of folderRes.items) {
           const url = await getDownloadURL(itemRef);
-          console.log(url);
-          itemList.push(url);
+          // console.log(url);
+          itemList.data.push(url);
         }
-  
-        console.log(itemList);
-        storageList.push(itemList);
+
+        // console.log('itemList',itemList);
+        folderList.push(itemList);
+        // console.log('folderList',folderList)
       }
-  
-      console.log(storageList);
-      DATA.push({
-        title: 'Storage',
-        data: storageList
-      });
+      setStorageList(folderList)
+      // console.log('storageList',storageList);
+
     } catch (error) {
       console.log("Error: " + error);
     }
   }
   //-------------------------------------------------------------
-  const Refresh=()=>{
-    setRefresh(new Date().toTimeString())
-  }
+  // const Refresh=()=>{
+  //   setRefresh(new Date().toTimeString())
+  // }
 
   // Add media button
   const handlerPress = async () => {
@@ -141,44 +143,13 @@ const ImageList = ({ navigation }) => {
     return <Text style={styles.sectionHeader}>{section.title}</Text>;
   };
 
-  displayList = []
-
-  const renderItem = ({ item, index }) => {
-    return (
-      <View style={styles.item}>
-        <TouchableOpacity onPress={() => navigation.navigate('ImageDetail', { images: displayList, initialIndex: index })}>
-          <Image source={{ uri: item }} style={styles.itemImage} />
-        </TouchableOpacity>
-      </View>
-    );
-  };
-
   return (
     <View>
       <View style={{ width: '100%', height: '100%' }}>
-        <SectionList
-          sections={DATA}
-          keyExtractor={(item, index) => item + index}
-          renderSectionHeader={renderSectionHeader}
-          renderItem={({ item }) => {
-            displayList = item
-            console.log("UI:")
-            console.log(item)
-            return (
-              <View style={styles.row}>
-                <FlatList
-                  data={item}
-                  renderItem={renderItem}
-                  keyExtractor={(item, index) => item + index}
-                  numColumns={4}
-                  contentContainerStyle={styles.gridContainer}
-                />
-              </View>
-            );
-          }}
-        />
+        <AllList storageList={storageList} navigation={navigation}/>
+        
         <FloatingButton onPress={handlerPress} text='+' />
-        <Button onPress={Refresh} title='refresh'/>
+        {/* <Button onPress={Refresh} title='refresh'/> */}
       </View>
     </View>
   )
@@ -195,11 +166,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   gridContainer: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    flex:1
   },
   item: {
-    margin: 1,
+    flex:1/4,
+    margin:1,
     backgroundColor: '#e6e6e6',
     justifyContent: 'center',
     alignItems: 'center',
