@@ -11,6 +11,9 @@
   },
   "dependencies": {
     "@baronha/react-native-multiple-image-picker": "^0.4.13",
+    "@react-native-firebase/app": "^17.4.2",
+    "@react-native-firebase/auth": "^17.4.2",
+    "@react-native-google-signin/google-signin": "^9.0.2",
     "@react-navigation/drawer": "^6.6.2",
     "@react-navigation/native": "^6.1.6",
     "@react-navigation/native-stack": "^6.9.12",

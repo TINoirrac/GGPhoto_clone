@@ -1,8 +1,47 @@
 import { View, Text, Modal, TouchableOpacity, StyleSheet } from 'react-native'
 import React, { useState } from 'react'
 import Icon from 'react-native-vector-icons/MaterialIcons'
+import { GoogleSignin } from '@react-native-google-signin/google-signin'
+// import firebase from 'firebase/app'
+// import 'firebase/app'
+import { auth } from './StorageConfig'
+import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth'
 
-const AccountModal = ({ isVisible,onClose }) => {
+
+
+GoogleSignin.configure({
+    webClientId: '221892027600-os3ahi2d8gpnhfabasqurmt7bmldhgq7.apps.googleusercontent.com'
+})
+
+const AccountModal = ({ isVisible, onClose }) => {
+
+    const onGoogleButtonPress = async () => {
+        // Check if your device supports Google Play
+        await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+        // Get the users ID token
+        const { idToken } = await GoogleSignin.signIn();
+
+
+
+        // // Create a Google credential with the token
+        const googleCredential = GoogleAuthProvider.credential(idToken)
+        console.log('test')
+        console.log(googleCredential)
+
+        // // Sign-in the user with the credential
+        // const user_sign_in= firebase.auth().signInWithCredential(googleCredential)
+        // user_sign_in.then((user)=>{
+        //     console.log(user)
+        // })
+        // .catch((error)=>{
+        //     console.log(error)
+        // })
+        
+        const result=await signInWithCredential(googleCredential)
+        console.log(result)
+    }
+    
+
     return (
         <Modal
             animationType='fade'
@@ -15,7 +54,7 @@ const AccountModal = ({ isVisible,onClose }) => {
                             name='close'
                             size={20} />
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.container} >
+                    <TouchableOpacity style={styles.container} onPress={onGoogleButtonPress} >
                         <Icon style={styles.icon}
                             name='login'
                             size={20}
@@ -54,12 +93,12 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
     container: {
-        flexDirection:'row',
-        width:'100%',
-        alignItems:'center'
+        flexDirection: 'row',
+        width: '100%',
+        alignItems: 'center'
     },
-    icon:{
-        margin:10
+    icon: {
+        margin: 10
     }
 
 
