@@ -8,7 +8,6 @@ import { auth } from './StorageConfig'
 import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth'
 
 
-
 GoogleSignin.configure({
     webClientId: '221892027600-os3ahi2d8gpnhfabasqurmt7bmldhgq7.apps.googleusercontent.com'
 })
@@ -16,29 +15,23 @@ GoogleSignin.configure({
 const AccountModal = ({ isVisible, onClose }) => {
 
     const onGoogleButtonPress = async () => {
-        // Check if your device supports Google Play
-        await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-        // Get the users ID token
-        const { idToken } = await GoogleSignin.signIn();
-
-
-
-        // // Create a Google credential with the token
-        const googleCredential = GoogleAuthProvider.credential(idToken)
-        console.log('test')
-        console.log(googleCredential)
-
-        // // Sign-in the user with the credential
-        // const user_sign_in= firebase.auth().signInWithCredential(googleCredential)
-        // user_sign_in.then((user)=>{
-        //     console.log(user)
-        // })
-        // .catch((error)=>{
-        //     console.log(error)
-        // })
-        
-        const result=await signInWithCredential(googleCredential)
-        console.log(result)
+        try {
+            // Check if your device supports Google Play
+            await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+            // Get the users ID token
+            const { idToken } = await GoogleSignin.signIn();
+            console.log('Sign in token:', idToken);
+            
+            // Create a Google credential with the token
+            const googleCredential = GoogleAuthProvider.credential(idToken);
+            // Sign-in the user with the credential
+            const result = signInWithCredential(auth, googleCredential);
+            console.log('Sign in result:', result);
+            console.log('Auth token:', auth);
+        } 
+        catch (error) {
+            console.log("Sign in error:", error)
+        }
     }
     
 
