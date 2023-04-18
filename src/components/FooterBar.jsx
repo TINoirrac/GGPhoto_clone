@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import React from 'react'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 
-const FooterBar = ({ onPressSlide }) => {
+const FooterBar = ({ onPressSlide,onPressDelete }) => {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.icon}>
@@ -14,7 +14,7 @@ const FooterBar = ({ onPressSlide }) => {
       <TouchableOpacity style={styles.icon} onPress={onPressSlide}>
         <Icon name='slideshow' size={20} color='white' />
       </TouchableOpacity>
-      <TouchableOpacity style={styles.icon} >
+      <TouchableOpacity style={styles.icon} onPress={onPressDelete} >
         <Icon name='delete' size={20} color='white' />
       </TouchableOpacity>
     </View>

@@ -1,46 +1,26 @@
-import { View, Text, Modal, TouchableOpacity, StyleSheet } from 'react-native'
-import React, { useState } from 'react'
+import { View, Text, Modal, TouchableOpacity, StyleSheet, Image, Button } from 'react-native'
+import React, { useEffect, useState } from 'react'
 import Icon from 'react-native-vector-icons/MaterialIcons'
-import { GoogleSignin } from '@react-native-google-signin/google-signin'
-// import firebase from 'firebase/app'
-// import 'firebase/app'
-import { auth } from './StorageConfig'
-import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth'
-
-
-
-GoogleSignin.configure({
-    webClientId: '221892027600-os3ahi2d8gpnhfabasqurmt7bmldhgq7.apps.googleusercontent.com'
-})
+import { signInWithGoogle, auth } from './StorageConfig'
+import { onAuthStateChanged,signOut } from 'firebase/auth'
+import { GoogleSigninButton } from '@react-native-google-signin/google-signin'
 
 const AccountModal = ({ isVisible, onClose }) => {
-
-    const onGoogleButtonPress = async () => {
-        // Check if your device supports Google Play
-        await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-        // Get the users ID token
-        const { idToken } = await GoogleSignin.signIn();
-
-
-
-        // // Create a Google credential with the token
-        const googleCredential = GoogleAuthProvider.credential(idToken)
-        console.log('test')
-        console.log(googleCredential)
-
-        // // Sign-in the user with the credential
-        // const user_sign_in= firebase.auth().signInWithCredential(googleCredential)
-        // user_sign_in.then((user)=>{
-        //     console.log(user)
-        // })
-        // .catch((error)=>{
-        //     console.log(error)
-        // })
-        
-        const result=await signInWithCredential(googleCredential)
-        console.log(result)
+    const [user, setUser] = useState(null)
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setUser(user)
+        })
+        return () => {
+            unsubscribe()
+        }
+    }, [])
+    const onSignInPress = () => {
+        signInWithGoogle()
     }
-    
+    const onSignOutPress=()=>{
+        signOut(auth)
+    }
 
     return (
         <Modal
@@ -54,13 +34,22 @@ const AccountModal = ({ isVisible, onClose }) => {
                             name='close'
                             size={20} />
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.container} onPress={onGoogleButtonPress} >
-                        <Icon style={styles.icon}
-                            name='login'
-                            size={20}
-                        />
-                        <Text>Sign in</Text>
-                    </TouchableOpacity>
+                    {user ? (
+                        <View style={styles.container}>
+                            <View style={styles.accountItemContainer}>
+                                <Image style={styles.accountAvatar} source={{ uri: user.photoURL }} />
+                                <View style={styles.accountInfo}>
+                                    <Text style={styles.accountName}>{user.displayName}</Text>
+                                    <Text style={styles.accountEmail}>{user.email}</Text>
+                                </View>
+                            </View>
+                            <TouchableOpacity onPress={onSignOutPress}>
+                                <Text>Log out</Text>
+                            </TouchableOpacity>
+                        </View>
+                    ) : (
+                        <GoogleSigninButton onPress={onSignInPress} size={GoogleSigninButton.Size.Wide}/>
+                    )}
                 </View>
             </View >
         </Modal>
@@ -93,14 +82,36 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
     container: {
-        flexDirection: 'row',
+        flexDirection: 'column',
         width: '100%',
-        alignItems: 'center'
     },
     icon: {
         margin: 10
-    }
-
+    },
+    accountItemContainer: {
+        paddingVertical: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderBottomWidth: 1,
+        borderBottomColor: '#e0e0e0',
+    },
+    accountInfo: {
+        flexDirection: 'column'
+    },
+    accountAvatar: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        marginRight: 16,
+    },
+    accountName: {
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    accountEmail: {
+        fontSize: 14,
+        color: '#888888',
+    },
 
 })
 

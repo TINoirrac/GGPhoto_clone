@@ -1,37 +1,78 @@
-import { View, Text } from 'react-native'
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ScrollView } from 'react-native'
 import React from 'react'
+import FastImage from 'react-native-fast-image'
 
-const DateList = ({ storageList }) => {
-    allData = [].concat(...storageList.map(item => item.data))
-    console.log('allData:', allData)
-    const renderItem = ({ item, index }) => {
-
-        return (
-            <View style={styles.item}>
-                <TouchableOpacity onPress={() => {
-                    console.log('index', index)
-
-                    navigation.navigate('ImageDetail', { images: allData, initialIndex: index })
-                }}>
-                    <Image source={{ uri: item }} style={styles.itemImage} />
-                </TouchableOpacity>
-            </View>
-        );
-    };
+const DateList = ({ storageList,navigation,refresh }) => {
+    const allData = [].concat(...storageList.map(item => item.data))
+  const renderItem = ({ item }) => {
     return (
-        {
-            afterAll.map((item, index) => {
+      <View style={styles.item}>
+        <TouchableOpacity onPress={() => {
+          navigation.navigate('ImageDetail', { images: allData, initialItem: item ,refresh:refresh})
+        }}>
+          <FastImage
+            style={styles.itemImage}
+            source={{
+              uri: item,
+              headers: { Authorization: 'someAuthToken' },
+              priority: FastImage.priority.high,
+            }}
 
-                return(<FlatList
-                    data={allData}
-                    renderItem={renderItem}
-                    keyExtractor={(item, index) => item + index}
-                    numColumns={4}
-                    contentContainerStyle={styles.gridContainer}
-                />)
-            })
-        }
-    )
+          />
+        </TouchableOpacity>
+      </View>
+    );
+  };
+  return (
+
+    <View>
+      <FlatList
+        data={storageList}
+        renderItem={({ item }) => {
+          return (
+            <View>
+              <Text style={styles.sectionHeader}>{item.title}</Text>
+              <FlatList
+                data={item.data}
+                renderItem={renderItem}
+                keyExtractor={(item, index) => item + index}
+                numColumns={4}
+                contentContainerStyle={styles.gridContainer}
+              />
+            </View>
+          )
+        }}
+        keyExtractor={(item,index)=>item+index}
+      />
+    </View>
+  )
 }
+
+const styles = StyleSheet.create({
+
+    sectionHeader: {
+      fontSize: 15,
+      fontWeight: 'bold',
+      backgroundColor: '#f2f2f2',
+      padding: 10,
+    },
+    row: {
+      flexDirection: 'row',
+    },
+    gridContainer: {
+  
+    },
+    item: {
+      flex: 1 / 4,
+      margin: 1,
+      backgroundColor: '#e6e6e6',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    itemImage: {
+      width: 100,
+      height: 100
+    },
+  });
 
 export default DateList

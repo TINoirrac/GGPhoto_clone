@@ -3,12 +3,10 @@ import React, { useEffect, useRef, useState } from 'react'
 import FloatingButton from '../components/FloatingButton'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { rootStorage } from '../components/StorageConfig';
-import { ref, uploadBytes, listAll, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes, listAll, getDownloadURL, getMetadata } from "firebase/storage";
 import MultipleImagePicker from '@baronha/react-native-multiple-image-picker';
 import uuid from 'react-native-uuid';
-import ImageView from './ImageView';
-import ImageDetail from './ImageDetail';
-import AllList from '../components/AllList';
+import DateList from '../components/DateList';
 
 const Stack = createNativeStackNavigator()
 
@@ -98,12 +96,15 @@ const ImageList = ({ navigation }) => {
 
         for (const itemRef of folderRes.items) {
           const url = await getDownloadURL(itemRef);
+          const metadata = await getMetadata(itemRef)
           // console.log(url);
-          itemList.data.push(url);
+          if (metadata.customMetadata == undefined)
+            itemList.data.push(url);
         }
 
         // console.log('itemList',itemList);
-        folderList.push(itemList);
+        if (itemList.data.length != 0)
+          folderList.push(itemList);
         // console.log('folderList',folderList)
       }
       setStorageList(folderList)
@@ -142,15 +143,14 @@ const ImageList = ({ navigation }) => {
   const renderSectionHeader = ({ section }) => {
     return <Text style={styles.sectionHeader}>{section.title}</Text>;
   };
+  console.log(storageList)
 
   return (
-    <View>
-      <View style={{ width: '100%', height: '100%' }}>
-        <AllList storageList={storageList} navigation={navigation}/>
-        
-        <FloatingButton onPress={handlerPress} text='+' />
-        {/* <Button onPress={Refresh} title='refresh'/> */}
-      </View>
+    <View style={{ width: '100%', height: '100%' }}>
+      <DateList storageList={storageList} navigation={navigation} />
+
+      <FloatingButton onPress={handlerPress} text='+' />
+      {/* <Button onPress={Refresh} title='refresh'/> */}
     </View>
   )
 }
@@ -166,11 +166,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   gridContainer: {
-    flex:1
+    flex: 1
   },
   item: {
-    flex:1/4,
-    margin:1,
+    flex: 1 / 4,
+    margin: 1,
     backgroundColor: '#e6e6e6',
     justifyContent: 'center',
     alignItems: 'center',
