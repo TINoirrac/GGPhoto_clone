@@ -7,6 +7,7 @@ import { ref, uploadBytes, listAll, getDownloadURL, getMetadata } from "firebase
 import MultipleImagePicker from '@baronha/react-native-multiple-image-picker';
 import uuid from 'react-native-uuid';
 import DateList from '../components/DateList';
+import { auth } from '../components/StorageConfig';
 
 const Stack = createNativeStackNavigator()
 
@@ -54,7 +55,7 @@ const ImageList = ({ navigation }) => {
         resolve(xhr.response);
       };
       xhr.onerror = function (e) {
-        console.log(e);
+        console.log("Submit error:", e);
         reject(new TypeError("Blob throw: Network request failed"));
       };
       xhr.responseType = "blob";
@@ -62,8 +63,10 @@ const ImageList = ({ navigation }) => {
       xhr.send(null);
     });
 
+    // Create reference to user storage
+    const userRef = ref(rootStorage, auth.currentUser.uid);
     // Create reference to child storage
-    const childRef = ref(rootStorage, new Date().toDateString());
+    const childRef = ref(userRef, new Date().toDateString());
     // Create reference to media
     const mediaRef = ref(childRef, uuid.v4());
 
