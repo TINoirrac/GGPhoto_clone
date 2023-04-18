@@ -1,10 +1,10 @@
 import { View, Text, Modal, TouchableOpacity, StyleSheet } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect } from 'react'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import { GoogleSignin } from '@react-native-google-signin/google-signin'
 // import firebase from 'firebase/app'
 // import 'firebase/app'
-import { auth } from './StorageConfig'
+import { user } from './StorageConfig'
 import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth'
 
 
@@ -13,6 +13,16 @@ GoogleSignin.configure({
 })
 
 const AccountModal = ({ isVisible, onClose }) => {
+
+    useEffect(() => {
+        // console.log the user
+        if (user.currentUser == undefined) {
+            console.log("User: Not login")
+        }
+        else {
+            console.log('User uid:', user.currentUser.uid);
+        }
+    })
 
     const onGoogleButtonPress = async () => {
         try {
@@ -25,9 +35,8 @@ const AccountModal = ({ isVisible, onClose }) => {
             // Create a Google credential with the token
             const googleCredential = GoogleAuthProvider.credential(idToken);
             // Sign-in the user with the credential
-            const result = signInWithCredential(auth, googleCredential);
+            const result = signInWithCredential(user, googleCredential);
             console.log('Sign in result:', result);
-            console.log('Auth token:', auth);
         } 
         catch (error) {
             console.log("Sign in error:", error)

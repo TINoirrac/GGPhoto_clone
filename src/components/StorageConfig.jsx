@@ -17,9 +17,10 @@ const firebaseConfig = {
     appId: "1:221892027600:web:8d38178d864b38ece16ad5"
 };
 
+// User instance
+export const user = getAuth();
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 // Create a root reference
 export const rootStorage = getStorage(app);
 
-export const auth = getAuth();
