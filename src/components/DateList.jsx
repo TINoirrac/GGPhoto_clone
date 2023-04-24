@@ -60,11 +60,11 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
     },
     gridContainer: {
-  
+      
     },
     item: {
-      flex: 1 / 4,
-      margin: 1,
+      flex: 1/4,
+      padding: 1,
       backgroundColor: '#e6e6e6',
       justifyContent: 'center',
       alignItems: 'center',

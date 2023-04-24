@@ -7,7 +7,7 @@ import { ref, uploadBytes, listAll, getDownloadURL, getMetadata } from "firebase
 import MultipleImagePicker from '@baronha/react-native-multiple-image-picker';
 import uuid from 'react-native-uuid';
 import DateList from '../components/DateList';
-import { auth } from '../components/StorageConfig';
+//import { auth } from '../components/StorageConfig';
 
 const Stack = createNativeStackNavigator()
 
@@ -63,12 +63,12 @@ const ImageList = ({ navigation }) => {
       xhr.send(null);
     });
 
-    // Create reference to user storage
-    const userRef = ref(rootStorage, auth.currentUser.uid);
-    // Create reference to child storage
-    const childRef = ref(userRef, new Date().toDateString());
-    // Create reference to media
-    const mediaRef = ref(childRef, uuid.v4());
+    // // Create reference to user storage
+    // const userRef = ref(rootStorage, auth.currentUser.uid);
+    // // Create reference to child storage
+    // const childRef = ref(userRef, new Date().toDateString());
+    // // Create reference to media
+    // const mediaRef = ref(childRef, uuid.v4());
 
     // 'file' comes from the Blob or File API
     uploadBytes(mediaRef, blob)
