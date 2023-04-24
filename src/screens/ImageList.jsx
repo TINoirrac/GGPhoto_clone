@@ -11,17 +11,16 @@ import { auth } from '../components/StorageConfig';
 
 const Stack = createNativeStackNavigator()
 
-// Data show at UI
-const DATA = [
-  {
-    title: 'Movies',
-    data: []
-  },
-  {
-    title: 'Pictures',
-    data: [['https://reactnative.dev/img/tiny_logo.png', 'https://reactnative.dev/img/tiny_logo.png', 'https://reactnative.dev/img/tiny_logo.png', 'https://reactnative.dev/img/tiny_logo.png']]
-  }
-]
+// const DATA = [
+//   {
+//     title: 'Movies',
+//     data: []
+//   },
+//   {
+//     title: 'Pictures',
+//     data: [['https://reactnative.dev/img/tiny_logo.png', 'https://reactnative.dev/img/tiny_logo.png', 'https://reactnative.dev/img/tiny_logo.png', 'https://reactnative.dev/img/tiny_logo.png']]
+//   }
+// ]
 
 const ImageList = ({ navigation }) => {
   // Firebase-------------------------------------------------------------
@@ -86,7 +85,12 @@ const ImageList = ({ navigation }) => {
   // Receive all Media from Storage
   const refreshMediaList = async () => {
     try {
-      const listRef = ref(rootStorage, '');
+      let listRef = ref(rootStorage, '');
+      // Check if login, ref to user folder
+      if (auth.currentUser != null) {
+        listRef = ref(rootStorage, auth.currentUser.uid);
+      }
+
       const res = await listAll(listRef);
       const folderList = []
       for (const folderRef of res.prefixes) {
