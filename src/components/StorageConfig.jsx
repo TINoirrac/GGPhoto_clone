@@ -18,13 +18,12 @@ const firebaseConfig = {
     appId: "1:221892027600:web:8d38178d864b38ece16ad5"
 };
 
-// User instance
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 // Create a root reference
 export const rootStorage = getStorage(app);
-
-export const auth = getAuth(app)
+// User instance
+export const auth = getAuth(app);
 
 GoogleSignin.configure({
     webClientId: '221892027600-os3ahi2d8gpnhfabasqurmt7bmldhgq7.apps.googleusercontent.com'
