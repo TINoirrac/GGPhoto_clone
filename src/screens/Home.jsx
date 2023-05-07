@@ -9,7 +9,7 @@ import AlbumList from './AlbumList'
 
 const Drawer = createDrawerNavigator()
 
-const Home = () => {
+const Home = ({navigation}) => {
   const [modalVisible, setModalVisible] = useState(false)
 
   const handleOpenModal = () => {
@@ -39,7 +39,7 @@ const Home = () => {
                 color='blue'
               />
             </TouchableOpacity>
-            <AccountModal isVisible={modalVisible} onClose={handleCloseModal} />
+            <AccountModal isVisible={modalVisible} navigation={navigation} onClose={handleCloseModal} />
           </View>
         )
       }} />

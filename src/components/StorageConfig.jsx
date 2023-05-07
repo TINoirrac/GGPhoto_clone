@@ -40,7 +40,7 @@ export const signInWithGoogle = async () => {
     // Sign-in the user with the credential
     const user_sign_in = signInWithCredential(auth, googleCredential)
     user_sign_in.then((user) => {
-        console.log(user)
+        console.log('user',user)
     })
         .catch((error) => {
             console.log(error)

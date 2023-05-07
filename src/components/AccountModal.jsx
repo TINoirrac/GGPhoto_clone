@@ -1,11 +1,10 @@
-import { View, Text, Modal, TouchableOpacity, StyleSheet, Image, Button } from 'react-native'
+import { View, Text, Modal, TouchableOpacity, StyleSheet, Image } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import { signInWithGoogle, auth } from './StorageConfig'
-import { onAuthStateChanged,signOut } from 'firebase/auth'
-import { GoogleSigninButton } from '@react-native-google-signin/google-signin'
+import { onAuthStateChanged, signOut } from 'firebase/auth'
 
-const AccountModal = ({ isVisible, onClose }) => {
+const AccountModal = ({ isVisible, onClose ,navigation}) => {
     const [user, setUser] = useState(null)
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -18,8 +17,10 @@ const AccountModal = ({ isVisible, onClose }) => {
     const onSignInPress = () => {
         signInWithGoogle()
     }
-    const onSignOutPress=()=>{
-        signOut(auth)
+    const onSignOutPress = () => {
+        signOut(auth).then(()=>{
+            navigation.navigate('Login')
+        })
     }
 
     return (
@@ -34,7 +35,7 @@ const AccountModal = ({ isVisible, onClose }) => {
                             name='close'
                             size={20} />
                     </TouchableOpacity>
-                    {user ? (
+                    {user && (
                         <View style={styles.container}>
                             <View style={styles.accountItemContainer}>
                                 <Image style={styles.accountAvatar} source={{ uri: user.photoURL }} />
@@ -47,9 +48,11 @@ const AccountModal = ({ isVisible, onClose }) => {
                                 <Text>Log out</Text>
                             </TouchableOpacity>
                         </View>
-                    ) : (
-                        <GoogleSigninButton onPress={onSignInPress} size={GoogleSigninButton.Size.Wide}/>
-                    )}
+                    )
+                        // : (
+                        //     <GoogleSigninButton onPress={onSignInPress} size={GoogleSigninButton.Size.Wide}/>
+                        // )
+                    }
                 </View>
             </View >
         </Modal>

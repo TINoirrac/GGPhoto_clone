@@ -1,13 +1,12 @@
 import { View, Text, SectionList, Image, ScrollView, FlatList, StyleSheet, Modal, TouchableWithoutFeedback, TouchableOpacity, Button } from 'react-native'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import FloatingButton from '../components/FloatingButton'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { rootStorage } from '../components/StorageConfig';
+import { rootStorage, auth } from '../components/StorageConfig';
 import { ref, uploadBytes, listAll, getDownloadURL, getMetadata } from "firebase/storage";
 import MultipleImagePicker from '@baronha/react-native-multiple-image-picker';
 import uuid from 'react-native-uuid';
 import DateList from '../components/DateList';
-import { auth } from '../components/StorageConfig';
 
 const Stack = createNativeStackNavigator()
 
@@ -22,15 +21,42 @@ const Stack = createNativeStackNavigator()
 //   }
 // ]
 
-const ImageList = ({ navigation }) => {
+const ImageList = ({ navigation, route }) => {
   // Firebase-------------------------------------------------------------
   // List of media retrieve from Storage
+  // const {updatedImages}=route.params
   const [refresh, setRefresh] = useState(null);
+  const [refreshing, setResfreshing] = useState(false)
   const [storageList, setStorageList] = useState([])
+  console.log('isUpdatedImages', route.params?.isUpdatedImages)
 
   useEffect(() => {
+    // if(route.params?.updatedImages)
+    //   setStorageList(route.params.updatedImages)
+    // else
     refreshMediaList()
   }, [refresh])
+
+  useEffect(() => {
+    if (route.params?.isUpdatedImages) {
+      setRefresh(new Date().toTimeString())
+      setResfreshing(true)
+      console.log('refreshing....')
+      setTimeout(() => {
+        setRefresh(new Date().toTimeString())
+        setResfreshing(false)
+      }, 2000)
+    }
+  }, [route.params])
+
+  const onRefresh = useCallback(() => {
+    setResfreshing(true)
+    setRefresh(new Date().toTimeString())
+    console.log('refreshing....')
+    // setTimeout(() => {
+    //   setResfreshing(false)
+    // }, 2000)
+  }, [])
 
   // Send selected media to Storage
   const upload = async (media) => {
@@ -38,9 +64,12 @@ const ImageList = ({ navigation }) => {
     console.log(media)
     await media.forEach(uri => {
       if (uri != null)
-        submitData(uri)
-    });
-    setRefresh(new Date().toTimeString())
+        submitData(uri).then(() => {
+        })
+    })
+    setTimeout(() => {
+      setRefresh(new Date().toTimeString())
+    }, 1000);
   }
 
   // Send single media to Storage
@@ -84,39 +113,40 @@ const ImageList = ({ navigation }) => {
 
   // Receive all Media from Storage
   const refreshMediaList = async () => {
+    console.log('crawling..')
     try {
-      let listRef = ref(rootStorage, '');
       // Check if login, ref to user folder
       if (auth.currentUser != null) {
-        listRef = ref(rootStorage, auth.currentUser.uid);
-      }
+        const listRef = ref(rootStorage, auth.currentUser.uid);
 
-      const res = await listAll(listRef);
-      const folderList = []
-      for (const folderRef of res.prefixes) {
-        // console.log(folderRef.name);
-        const itemList = {
-          title: folderRef.name,
-          data: []
-        };
-        const folderRes = await listAll(folderRef);
+        const res = await listAll(listRef);
+        const folderList = []
+        for (const folderRef of res.prefixes) {
+          // console.log(folderRef.name);
+          const itemList = {
+            title: folderRef.name,
+            data: []
+          };
+          const folderRes = await listAll(folderRef);
 
-        for (const itemRef of folderRes.items) {
-          const url = await getDownloadURL(itemRef);
-          const metadata = await getMetadata(itemRef)
-          // console.log(url);
-          if (metadata.customMetadata == undefined)
-            itemList.data.push(url);
+          for (const itemRef of folderRes.items) {
+            const url = await getDownloadURL(itemRef);
+            const metadata = await getMetadata(itemRef)
+            // console.log(url);
+            console.log('metadata', metadata)
+            if (metadata.customMetadata == undefined)
+              itemList.data.push(url);
+          }
+
+          // console.log('itemList',itemList);
+          if (itemList.data.length != 0)
+            folderList.push(itemList);
+          // console.log('folderList',folderList)
         }
-
-        // console.log('itemList',itemList);
-        if (itemList.data.length != 0)
-          folderList.push(itemList);
-        // console.log('folderList',folderList)
+        setStorageList(folderList)
+        setResfreshing(false)
+        // console.log('storageList',storageList);
       }
-      setStorageList(folderList)
-      // console.log('storageList',storageList);
-
     } catch (error) {
       console.log("Error: " + error);
     }
@@ -147,14 +177,16 @@ const ImageList = ({ navigation }) => {
     })
   }
 
-  const renderSectionHeader = ({ section }) => {
-    return <Text style={styles.sectionHeader}>{section.title}</Text>;
-  };
-  console.log(storageList)
+
+
+  // const renderSectionHeader = ({ section }) => {
+  //   return <Text style={styles.sectionHeader}>{section.title}</Text>;
+  // };
+  console.log('storageList', storageList)
 
   return (
     <View style={{ width: '100%', height: '100%' }}>
-      <DateList storageList={storageList} navigation={navigation} />
+      <DateList storageList={storageList} navigation={navigation} setRefresh={setRefresh} navFrom={'ImageList'} refreshing={refreshing} onRefresh={onRefresh} />
 
       <FloatingButton onPress={handlerPress} text='+' />
       {/* <Button onPress={Refresh} title='refresh'/> */}

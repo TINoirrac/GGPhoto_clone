@@ -1,21 +1,24 @@
-import React, { useState } from 'react';
-import { View, Image, StyleSheet } from 'react-native';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import Swiper from 'react-native-swiper';
 import FooterBar from '../components/FooterBar';
 import FastImage from 'react-native-fast-image';
-import { getMetadata, ref, updateMetadata } from 'firebase/storage'
+import { deleteObject, ref, updateMetadata } from 'firebase/storage'
 import { rootStorage } from '../components/StorageConfig';
+import Icon from 'react-native-vector-icons/MaterialIcons'
 
-const ImageDetail = ({ route }) => {
-  const { images, initialItem } = route.params;
+const ImageDetail = ({ route, navigation }) => {
+  const { images, initialItem, navFrom } = route.params;
   const [autoplay, setAutoplay] = useState(false)
   const [itemCurrent, setItemCurrent] = useState(initialItem)
+  const [updatedImages, setUpdatedImages] = useState(images)
+  const [isUpdatedImages, setIsUpdatedImages] = useState(false)
   const initialIndex = images.indexOf(initialItem)
-  console.log('autoplay', autoplay)
+  console.log('images', initialItem)
 
-  const forestRef = ref(rootStorage, itemCurrent)
 
   const deleteHandle = () => {
+    const forestRef = ref(rootStorage, itemCurrent)
     const newMetadata = {
       customMetadata: {
         isDeleted: true,
@@ -24,11 +27,74 @@ const ImageDetail = ({ route }) => {
     }
     updateMetadata(forestRef, newMetadata).then((metadata) => {
       console.log(metadata.customMetadata.isDeleted)
+      // Xóa phần tử khỏi danh sách images
+      const newImages = updatedImages.filter(image => image !== itemCurrent);
+      // Cập nhật state mới
+      setIsUpdatedImages(true)
+      setUpdatedImages(newImages);
     }).catch((error) => {
       console.log(error)
     })
-
   }
+
+  const deleteForeverHandle = () => {
+    const desertRef = ref(rootStorage, itemCurrent)
+
+    deleteObject(desertRef).then(() => {
+      const newImages = updatedImages.filter(image => image != itemCurrent)
+
+      setIsUpdatedImages(true)
+      setUpdatedImages(newImages)
+    }).catch((error) => {
+      console.log(error)
+    })
+  }
+
+  const restoreHandle = () => {
+    const forestRef = ref(rootStorage, itemCurrent)
+    const newMetadata = {
+      customMetadata:null
+    }
+    updateMetadata(forestRef, newMetadata).then((metadata) => {
+      console.log(metadata.customMetadata)
+      // Xóa phần tử khỏi danh sách images
+      const newImages = updatedImages.filter(image => image !== itemCurrent);
+      // Cập nhật state mới
+      setIsUpdatedImages(true)
+      setUpdatedImages(newImages);
+    }).catch((error) => {
+      console.log(error)
+    })
+  }
+
+  useEffect(() => {
+    if (updatedImages.length == 0) {
+      navigation.navigate({
+        name: navFrom,
+        params: { isUpdatedImages: isUpdatedImages },
+        merge: true
+      })
+    }
+  }, [updatedImages])
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <TouchableOpacity onPress={() => {
+          navigation.navigate({
+            name: navFrom,
+            params: { isUpdatedImages: isUpdatedImages },
+            merge: true
+          })
+        }}>
+          <Icon
+            name='arrow-back'
+            size={25}
+          />
+        </TouchableOpacity>
+      )
+    })
+  }, [navigation, isUpdatedImages])
 
   return (
     <View style={styles.container}>
@@ -40,7 +106,7 @@ const ImageDetail = ({ route }) => {
         onIndexChanged={(index) => {
           setItemCurrent(images.at(index))
         }}>
-        {images.map((imageUri, index) => {
+        {updatedImages.map((imageUri, index) => {
           return (
             <View style={styles.slide} key={index}>
               <FastImage
@@ -57,7 +123,7 @@ const ImageDetail = ({ route }) => {
         }
         )}
       </Swiper>
-      <FooterBar onPressSlide={() => setAutoplay(!autoplay)} onPressDelete={deleteHandle} />
+      <FooterBar onPressSlide={() => setAutoplay(!autoplay)} onPressDelete={deleteHandle} onPressDeleteForever={deleteForeverHandle} onPressRestore={restoreHandle} navFrom={navFrom} />
     </View>
   );
 };

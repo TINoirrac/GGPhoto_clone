@@ -1,18 +1,18 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native'
-import React from 'react'
+import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native'
+import React, { useCallback, useState } from 'react'
 import FastImage from 'react-native-fast-image'
 
-const AllList = ({ storageList, navigation }) => {
-  allData = [].concat(...storageList.map(item => item.data))
-  console.log('allData:', allData)
-  const renderItem = ({ item, index }) => {
+const AllList = ({ storageList, navigation, navFrom, refreshing, onRefresh }) => {
+  const allData = [].concat(...storageList.map(item => item.data))
+  // console.log('allData:', allData)
 
+  const renderItem = ({ item, index }) => {
     return (
       <View style={styles.item}>
         <TouchableOpacity onPress={() => {
           console.log('index', index)
 
-          navigation.navigate('ImageDetail', { images: allData, initialIndex: index })
+          navigation.navigate('ImageDetail', { images: allData, initialItem: item, navFrom: navFrom })
         }}>
           <FastImage
             style={styles.itemImage}
@@ -27,9 +27,13 @@ const AllList = ({ storageList, navigation }) => {
       </View>
     );
   };
+
   return (
     <FlatList
+      style={styles.container}
       data={allData}
+      onRefresh={onRefresh}
+      refreshing={refreshing}
       renderItem={renderItem}
       keyExtractor={(item, index) => item + index}
       numColumns={4}
@@ -62,6 +66,9 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100
   },
+  container: {
+    height: '100%'
+  }
 });
 
 export default AllList
