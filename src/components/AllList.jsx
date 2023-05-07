@@ -1,12 +1,28 @@
-import { View, StyleSheet, FlatList, TouchableOpacity } from 'react-native'
+import { View, StyleSheet, FlatList, TouchableOpacity, Text } from 'react-native'
 import React, { useCallback, useState } from 'react'
 import FastImage from 'react-native-fast-image'
+import CheckBox from '@react-native-community/checkbox'
 
-const AllList = ({ storageList, navigation, navFrom, refreshing, onRefresh }) => {
-  const allData = [].concat(...storageList.map(item => item.data))
+const AllList = ({ allData, navigation, navFrom, refreshing, onRefresh, pressSelect,selectedImages,setSelectedImages }) => {
   // console.log('allData:', allData)
 
+  const handleCheck = useCallback((item, index) => {
+    const newSelectedImages = [...selectedImages]
+    // console.log('item',item)
+    if (item.isChecked) {
+      newSelectedImages.splice(newSelectedImages.indexOf(item), 1)
+      item.isChecked = false
+    } else {
+      newSelectedImages.push(item)
+      item.isChecked = true
+    }
+    setSelectedImages(newSelectedImages)
+    console.log('selectedImages', newSelectedImages)
+  }, [selectedImages])
+
   const renderItem = ({ item, index }) => {
+    const isChecked = selectedImages.includes(item)
+    // console.log('isChecked',isChecked)
     return (
       <View style={styles.item}>
         <TouchableOpacity onPress={() => {
@@ -17,13 +33,21 @@ const AllList = ({ storageList, navigation, navFrom, refreshing, onRefresh }) =>
           <FastImage
             style={styles.itemImage}
             source={{
-              uri: item,
+              uri: item.uri,
               headers: { Authorization: 'someAuthToken' },
               priority: FastImage.priority.high,
             }}
 
           />
         </TouchableOpacity>
+        {
+          pressSelect && (
+            <CheckBox
+              value={isChecked}
+              onValueChange={() => handleCheck(item, index)}
+            />
+          )
+        }
       </View>
     );
   };

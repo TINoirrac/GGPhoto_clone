@@ -14,7 +14,7 @@ const DateList = ({ storageList, navigation, navFrom, refreshing, onRefresh }) =
           <FastImage
             style={styles.itemImage}
             source={{
-              uri: item,
+              uri: item.uri,
               headers: { Authorization: 'someAuthToken' },
               priority: FastImage.priority.high,
             }}

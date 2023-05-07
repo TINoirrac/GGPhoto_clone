@@ -18,7 +18,7 @@ const ImageDetail = ({ route, navigation }) => {
 
 
   const deleteHandle = () => {
-    const forestRef = ref(rootStorage, itemCurrent)
+    const forestRef = ref(rootStorage, itemCurrent.uri)
     const newMetadata = {
       customMetadata: {
         isDeleted: true,
@@ -38,7 +38,7 @@ const ImageDetail = ({ route, navigation }) => {
   }
 
   const deleteForeverHandle = () => {
-    const desertRef = ref(rootStorage, itemCurrent)
+    const desertRef = ref(rootStorage, itemCurrent.uri)
 
     deleteObject(desertRef).then(() => {
       const newImages = updatedImages.filter(image => image != itemCurrent)
@@ -51,12 +51,12 @@ const ImageDetail = ({ route, navigation }) => {
   }
 
   const restoreHandle = () => {
-    const forestRef = ref(rootStorage, itemCurrent)
+    const forestRef = ref(rootStorage, itemCurrent.uri)
     const newMetadata = {
       customMetadata:null
     }
     updateMetadata(forestRef, newMetadata).then((metadata) => {
-      console.log(metadata.customMetadata)
+      // console.log(metadata.customMetadata)
       // Xóa phần tử khỏi danh sách images
       const newImages = updatedImages.filter(image => image !== itemCurrent);
       // Cập nhật state mới
@@ -106,12 +106,12 @@ const ImageDetail = ({ route, navigation }) => {
         onIndexChanged={(index) => {
           setItemCurrent(images.at(index))
         }}>
-        {updatedImages.map((imageUri, index) => {
+        {updatedImages.map((image, index) => {
           return (
             <View style={styles.slide} key={index}>
               <FastImage
                 source={{
-                  uri: imageUri,
+                  uri: image.uri,
                   headers: { Authorization: 'someAuthToken' },
                   priority: FastImage.priority.high,
                 }}

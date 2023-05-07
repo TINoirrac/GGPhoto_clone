@@ -28,29 +28,30 @@ const ImageList = ({ navigation, route }) => {
   const [refresh, setRefresh] = useState(null);
   const [refreshing, setResfreshing] = useState(false)
   const [storageList, setStorageList] = useState([])
-  console.log('isUpdatedImages', route.params?.isUpdatedImages)
+  console.log('isUpdatedImages', navigation)
 
   useEffect(() => {
     // if(route.params?.updatedImages)
     //   setStorageList(route.params.updatedImages)
     // else
+    setResfreshing(true)
     refreshMediaList()
-  }, [refresh])
+  }, [refresh,navigation])
 
   useEffect(() => {
     if (route.params?.isUpdatedImages) {
+      // setResfreshing(true)
       setRefresh(new Date().toTimeString())
-      setResfreshing(true)
       console.log('refreshing....')
-      setTimeout(() => {
-        setRefresh(new Date().toTimeString())
-        setResfreshing(false)
-      }, 2000)
+      // setTimeout(() => {
+      //   setRefresh(new Date().toTimeString())
+      //   setResfreshing(false)
+      // }, 2000)
     }
   }, [route.params])
 
   const onRefresh = useCallback(() => {
-    setResfreshing(true)
+    // setResfreshing(true)
     setRefresh(new Date().toTimeString())
     console.log('refreshing....')
     // setTimeout(() => {
@@ -68,6 +69,7 @@ const ImageList = ({ navigation, route }) => {
         })
     })
     setTimeout(() => {
+      // setResfreshing(true)
       setRefresh(new Date().toTimeString())
     }, 1000);
   }
@@ -126,16 +128,20 @@ const ImageList = ({ navigation, route }) => {
           const itemList = {
             title: folderRef.name,
             data: []
-          };
-          const folderRes = await listAll(folderRef);
+          }
 
+          const folderRes = await listAll(folderRef);
+          
           for (const itemRef of folderRes.items) {
+            const item={}
             const url = await getDownloadURL(itemRef);
             const metadata = await getMetadata(itemRef)
-            // console.log(url);
-            console.log('metadata', metadata)
-            if (metadata.customMetadata == undefined)
-              itemList.data.push(url);
+            console.log(url);
+            if (metadata.customMetadata == undefined){
+              item.uri=url
+              item.isChecked=false
+              itemList.data.push(item)
+            }
           }
 
           // console.log('itemList',itemList);
