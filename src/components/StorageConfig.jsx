@@ -1,6 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from 'firebase/app';
 import { getStorage } from 'firebase/storage';
+import { getDatabase } from "firebase/database";
 import { getAuth, GoogleAuthProvider, signInWithCredential } from 'firebase/auth'
 import { GoogleSignin } from '@react-native-google-signin/google-signin'
 
@@ -53,3 +54,6 @@ export const signInWithGoogle = async () => {
             const credential = GoogleAuthProvider.credentialFromError(error);
         })
 }
+
+// Realtime database
+export const rtdb = getDatabase(app);
