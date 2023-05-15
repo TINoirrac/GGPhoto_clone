@@ -2,7 +2,7 @@ import { View, Text, FlatList, StyleSheet, Button } from 'react-native'
 import React, { useState } from 'react'
 import Album from '../components/Album'
 import { auth, rtdb } from '../components/StorageConfig'
-import { child, get, ref, set } from 'firebase/database'
+import { child, get, ref, set, push, query, orderByChild, equalTo } from 'firebase/database'
 
 const AlbumList = ({albums,onAlbumPress}) => {
   const [cachedAlbums, setCachedAlbums] = useState(null);
@@ -14,9 +14,10 @@ const AlbumList = ({albums,onAlbumPress}) => {
 
   // Create new empty album
   const createAlbum = () => {
+    // to do: input album name
     let albumName = "album1";
 
-    let albumRef = child(userAlbums, albumName);
+    const albumRef = child(userAlbums, albumName);
     set(albumRef, "");
     console.log(albumName + " created");
   }
@@ -29,6 +30,23 @@ const AlbumList = ({albums,onAlbumPress}) => {
 
       setCachedAlbums(snapshot);
     })
+  }
+
+  // Add a image to album
+  const addToAlbum = () => {
+    // to do: get imageURL & album name
+    let albumName = "album2";
+    let imageURL = "imageURL123";
+
+    const albumRef = child(userAlbums, albumName);
+
+    // check if image already in album (not complete)
+    // const result = query(albumRef, orderByChild(''), equalTo('imageURL123'));
+    // console.log(result);
+
+    // add image's downloadable url to album
+    const image = push(albumRef);
+    set(image, {url: imageURL});
   }
 
   return (
@@ -44,6 +62,7 @@ const AlbumList = ({albums,onAlbumPress}) => {
       />
       <Button title='create album' onPress={createAlbum}/>
       <Button title='refresh' onPress={refreshAlbums}/>
+      <Button title='add to album' onPress={addToAlbum}/>
     </View>
   )
 }
