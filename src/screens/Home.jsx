@@ -10,15 +10,7 @@ import AlbumList from './AlbumList'
 const Drawer = createDrawerNavigator()
 
 const Home = ({navigation}) => {
-  const [modalVisible, setModalVisible] = useState(false)
 
-  const handleOpenModal = () => {
-    setModalVisible(true)
-  }
-
-  const handleCloseModal = () => {
-    setModalVisible(false)
-  }
 
   return (
     <Drawer.Navigator >
@@ -30,18 +22,7 @@ const Home = ({navigation}) => {
             size={size}
           />
         ),
-        headerRight: () => (
-          <View>
-            <TouchableOpacity style={{ paddingEnd: 15 }} onPress={handleOpenModal}>
-              <Icon
-                name='account-circle'
-                size={30}
-                color='blue'
-              />
-            </TouchableOpacity>
-            <AccountModal isVisible={modalVisible} navigation={navigation} onClose={handleCloseModal} />
-          </View>
-        )
+
       }} />
       <Drawer.Screen name='TrashList' component={TrashList} options={{
         title: 'Trash',
@@ -60,17 +41,6 @@ const Home = ({navigation}) => {
             size={size}
           />
         ),
-        headerRight: () => (
-          <View>
-            <TouchableOpacity style={{ paddingEnd: 15 }}>
-              <Icon
-                name='add'
-                size={30}
-                color='blue'
-              />
-            </TouchableOpacity>
-          </View>
-        )
       }}
       />
     </Drawer.Navigator>

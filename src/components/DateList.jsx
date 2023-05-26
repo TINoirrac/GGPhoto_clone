@@ -1,16 +1,35 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, ScrollView } from 'react-native'
 import React, { useCallback, useState } from 'react'
 import FastImage from 'react-native-fast-image'
+import CheckBox from '@react-native-community/checkbox'
 
-const DateList = ({ storageList, navigation, navFrom, refreshing, onRefresh }) => {
+const DateList = ({ storageList, navigation, navFrom, refreshing, onRefresh, pressSelect, selectedImages, setSelectedImages,onLongPress }) => {
   const allData = [].concat(...storageList.map(item => item.data))
 
-  const renderItem = ({ item }) => {
+  const handleCheck = useCallback((item) => {
+    const newSelectedImages = [...selectedImages]
+    if (item.isChecked) {
+      newSelectedImages.splice(newSelectedImages.indexOf(item), 1)
+      item.isChecked = false
+    } else {
+      newSelectedImages.push(item)
+      item.isChecked = true
+    }
+    setSelectedImages(newSelectedImages)
+    
+  }, [selectedImages])
+
+  const renderItem = ({ item, index }) => {
+    const isChecked = selectedImages.includes(item)
+
     return (
       <View style={styles.item}>
-        <TouchableOpacity onPress={() => {
+        <TouchableOpacity 
+        onPress={() => {
           navigation.navigate('ImageDetail', { images: allData, initialItem: item, navFrom: navFrom })
-        }}>
+        }}
+        onLongPress={onLongPress}
+        >
           <FastImage
             style={styles.itemImage}
             source={{
@@ -21,6 +40,14 @@ const DateList = ({ storageList, navigation, navFrom, refreshing, onRefresh }) =
 
           />
         </TouchableOpacity>
+        {
+          pressSelect && (
+            <CheckBox
+              value={isChecked}
+              onValueChange={() => handleCheck(item)}
+            />
+          )
+        }
       </View>
     );
   };

@@ -1,36 +1,76 @@
-import { View, Text, FlatList, StyleSheet, Button } from 'react-native'
-import React, { useState } from 'react'
+import { View, Text, FlatList, StyleSheet, Button, TouchableOpacity } from 'react-native'
+import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import Album from '../components/Album'
 import { auth, rtdb } from '../components/StorageConfig'
-import { child, get, ref, set, push, query, orderByChild, equalTo } from 'firebase/database'
+import { child, get, ref, set, push, query, orderByChild, equalTo, onValue } from 'firebase/database'
+import Icon from 'react-native-vector-icons/MaterialIcons'
+import CreateAlbumModal from '../components/CreateAlbumModal'
 
-const AlbumList = ({albums,onAlbumPress}) => {
-  const [cachedAlbums, setCachedAlbums] = useState(null);
+const AlbumList = ({navigation}) => {
+  const [refresh, setRefresh] = useState(null);
+  const [refreshing, setResfreshing] = useState(false)
+  const [modalVisible, setModalVisible] = useState(false)
+  const [cachedAlbums, setCachedAlbums] = useState(null)
+
+  useEffect(() => {
+    setResfreshing(true)
+    refreshAlbums()
+  }, [refresh, navigation])
+
+  const onRefresh = useCallback(() => {
+    // setResfreshing(true)
+    setRefresh(new Date().toTimeString())
+    console.log('refreshing....')
+    // setTimeout(() => {
+    //   setResfreshing(false)
+    // }, 2000)
+  }, [])
+
+  const handleOpenModal = () => {
+    setModalVisible(true)
+  }
+
+  const handleCloseModal = () => {
+    setModalVisible(false)
+  }
 
   // Ref to user albums
   const userDB = ref(rtdb, auth.currentUser.uid);
   const userAlbums = child(userDB, "albums");
   console.log("user albums: " + userAlbums);
 
-  // Create new empty album
-  const createAlbum = () => {
-    // to do: input album name
-    let albumName = "album1";
 
+  // Create new empty album
+  const createAlbum = (albumName) => {
+    // to do: input album name
     const albumRef = child(userAlbums, albumName);
     set(albumRef, "");
     console.log(albumName + " created");
+    setModalVisible(false)
+    setRefresh(new Date().toTimeString())
   }
 
   // Read user album
   const refreshAlbums = () => {
     get(userAlbums).then((snapshot) => {
       console.log("refresh albums:");
-      console.log(snapshot);
+      const albumList=[]
+      snapshot.forEach(element => {
+        const album={
+          title: element.key,
+        }
+        albumList.push(album)
+      });
 
-      setCachedAlbums(snapshot);
+      setCachedAlbums(albumList);
+      setResfreshing(false)
     })
   }
+  
+  // const allData = [].concat(...cachedAlbums.map(item => item.data))
+  
+  // console.log('cachedAlbums',cachedAlbums)
+
 
   // Add a image to album
   const addToAlbum = () => {
@@ -49,20 +89,38 @@ const AlbumList = ({albums,onAlbumPress}) => {
     set(image, {url: imageURL});
   }
 
+  useLayoutEffect(()=>{
+    navigation.setOptions({
+      headerRight: () => (
+        <View>
+          <TouchableOpacity style={{ paddingEnd: 15 }} onPress={handleOpenModal}>
+            <Icon
+              name='add'
+              size={30}
+              color='blue'
+            />
+          </TouchableOpacity>
+        </View>
+      )
+    })
+  })
+
   return (
     <View style={styles.albumListContainer}>
       <FlatList
-      data={albums}
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      data={cachedAlbums}
       keyExtractor={(item,index)=>item+index}
-      renderItem={({item})=>(
-        <Album albumData={item} onPress={()=>onAlbumPress(item)}/>
-      )}
-      numColumns={2}
+      renderItem={({item})=>{
+        return(
+        <Album albumData={item} navigation={navigation}/>
+      )}}
+      numColumns={3}
       contentContainerStyle={styles.albumListContent}
+      style={{height:'100%'}}
       />
-      <Button title='create album' onPress={createAlbum}/>
-      <Button title='refresh' onPress={refreshAlbums}/>
-      <Button title='add to album' onPress={addToAlbum}/>
+      <CreateAlbumModal isVisible={modalVisible} onClose={handleCloseModal} onCreate={createAlbum} />
     </View>
   )
 }

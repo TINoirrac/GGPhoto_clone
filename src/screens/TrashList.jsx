@@ -1,5 +1,5 @@
 import { View, Text } from 'react-native'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import { auth, rootStorage } from '../components/StorageConfig'
 import { deleteObject, getDownloadURL, getMetadata, listAll, ref, updateMetadata } from 'firebase/storage'
 import AllList from '../components/AllList'
@@ -77,21 +77,33 @@ const TrashList = ({ navigation, route }) => {
   const allData = [].concat(...storageList.map(item => item.data))
 
   const handleSelectButton = () => {
-    setPressSelect(!pressSelect)
-    setSelectedImages([])
+
+    setPressSelect((prevPressSelect) => {
+
+      return !prevPressSelect
+    })
+    setSelectedImages((prevSelectedImages)=>{
+      prevSelectedImages.map((item,index)=>{
+        item.isChecked=false
+      })
+      return []
+    })
   }
 
-  navigation.setOptions({
-    headerRight: () => (
-      <View>
-        <TouchableOpacity style={{ marginEnd: 15 }} onPress={handleSelectButton}>
-          <Text style={{ fontSize: 17, color: 'blue' }}>
-            Select
-          </Text>
-        </TouchableOpacity>
-      </View>
-    )
-  })
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View>
+          <TouchableOpacity style={{ marginEnd: 15 }} onPress={handleSelectButton}>
+            <Text style={{ fontSize: 17, color: 'blue' }}>
+              Select
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )
+    })
+  }, [navigation])
+
 
   const handleDelete = (data) => {
     data.forEach(item => {
@@ -126,19 +138,19 @@ const TrashList = ({ navigation, route }) => {
         <View>
           {selectedImages.length != 0 ? (
             <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 20 }}>
-              <TouchableOpacity onPress={()=>handleDelete(selectedImages)}>
+              <TouchableOpacity onPress={() => handleDelete(selectedImages)}>
                 <Text style={{ fontSize: 17, color: 'red' }}>Delete</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={()=>handleRestore(selectedImages)}>
+              <TouchableOpacity onPress={() => handleRestore(selectedImages)}>
                 <Text style={{ fontSize: 17, color: 'blue' }}>Restore</Text>
               </TouchableOpacity>
             </View>
           ) : (
             <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 20 }}>
-              <TouchableOpacity onPress={()=>handleDelete(allData)}>
+              <TouchableOpacity onPress={() => handleDelete(allData)}>
                 <Text style={{ fontSize: 17, color: 'red' }}>Delete all</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={()=>handleRestore(allData)}>
+              <TouchableOpacity onPress={() => handleRestore(allData)}>
                 <Text style={{ fontSize: 17, color: 'blue' }}>Restore all</Text>
               </TouchableOpacity>
             </View>

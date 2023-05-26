@@ -1,12 +1,17 @@
 import { View, Text, SectionList, Image, ScrollView, FlatList, StyleSheet, Modal, TouchableWithoutFeedback, TouchableOpacity, Button } from 'react-native'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import FloatingButton from '../components/FloatingButton'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { rootStorage, auth } from '../components/StorageConfig';
-import { ref, uploadBytes, listAll, getDownloadURL, getMetadata } from "firebase/storage";
+import { rootStorage, auth, rtdb } from '../components/StorageConfig';
+import { ref, uploadBytes, listAll, getDownloadURL, getMetadata, updateMetadata } from "firebase/storage";
 import MultipleImagePicker from '@baronha/react-native-multiple-image-picker';
 import uuid from 'react-native-uuid';
 import DateList from '../components/DateList';
+import Icon from 'react-native-vector-icons/MaterialIcons'
+import AccountModal from '../components/AccountModal';
+import AlbumListModal from '../components/AlbumListModal';
+import { ref as refdb,child, onValue, push, set } from 'firebase/database';
+
 
 const Stack = createNativeStackNavigator()
 
@@ -28,7 +33,20 @@ const ImageList = ({ navigation, route }) => {
   const [refresh, setRefresh] = useState(null);
   const [refreshing, setResfreshing] = useState(false)
   const [storageList, setStorageList] = useState([])
-  console.log('isUpdatedImages', navigation)
+  const [pressSelect, setPressSelect] = useState(false)
+  const [selectedImages, setSelectedImages] = useState([])
+
+  const [modalVisible, setModalVisible] = useState(false)
+  const [albumListModal,setAlbumListModal]=useState(false)
+
+  const handleOpenModal = () => {
+    setModalVisible(true)
+  }
+
+  const handleCloseModal = () => {
+    setModalVisible(false)
+  }
+  // console.log('isUpdatedImages', navigation)
 
   useEffect(() => {
     // if(route.params?.updatedImages)
@@ -36,7 +54,7 @@ const ImageList = ({ navigation, route }) => {
     // else
     setResfreshing(true)
     refreshMediaList()
-  }, [refresh,navigation])
+  }, [refresh, navigation])
 
   useEffect(() => {
     if (route.params?.isUpdatedImages) {
@@ -115,7 +133,7 @@ const ImageList = ({ navigation, route }) => {
 
   // Receive all Media from Storage
   const refreshMediaList = async () => {
-    console.log('crawling..')
+    // console.log('crawling..')
     try {
       // Check if login, ref to user folder
       if (auth.currentUser != null) {
@@ -131,15 +149,15 @@ const ImageList = ({ navigation, route }) => {
           }
 
           const folderRes = await listAll(folderRef);
-          
+
           for (const itemRef of folderRes.items) {
-            const item={}
+            const item = {}
             const url = await getDownloadURL(itemRef);
             const metadata = await getMetadata(itemRef)
-            console.log(url);
-            if (metadata.customMetadata == undefined){
-              item.uri=url
-              item.isChecked=false
+            // console.log(url);
+            if (metadata.customMetadata == undefined) {
+              item.uri = url
+              item.isChecked = false
               itemList.data.push(item)
             }
           }
@@ -183,19 +201,139 @@ const ImageList = ({ navigation, route }) => {
     })
   }
 
+  const handleSelectButton = () => {
 
+    setPressSelect((prevPressSelect) => {
+      return !prevPressSelect
+    })
 
+    setSelectedImages((prevSelectedImages) => {
+      prevSelectedImages.map((item, index) => {
+        item.isChecked = false
+      })
+      return []
+    })
+
+  }
+
+  // console.log('selectedImages',selectedImages)
+  const deleteHandle = (data) => {
+    console.log('delete',data)
+    data.forEach(item => {
+      console.log('item',item)
+      const forestRef = ref(rootStorage, item.uri)
+      const newMetadata = {
+        customMetadata: {
+          isDeleted: true,
+          deletedAt: new Date().toTimeString(),
+        }
+      }
+      updateMetadata(forestRef, newMetadata).then((metadata) => {
+        console.log(metadata.customMetadata.isDeleted)
+        // Xóa phần tử khỏi danh sách images
+        // const newImages = updatedImages.filter(image => image !== itemCurrent);
+        // Cập nhật state mới
+        setRefresh(new Date().toTimeString())
+      }).catch((error) => {
+        console.log(error)
+      })
+    });
+  }
   // const renderSectionHeader = ({ section }) => {
   //   return <Text style={styles.sectionHeader}>{section.title}</Text>;
   // };
-  console.log('storageList', storageList)
+
+  useLayoutEffect(() => {
+    if (pressSelect) {
+      navigation.setOptions({
+        headerLeft: () => (
+          <View>
+            <TouchableOpacity style={{ marginStart: 15 }} onPress={handleSelectButton}>
+              <Icon
+                name='close'
+                size={30}
+                color='blue'
+              />
+            </TouchableOpacity>
+          </View>
+        ),
+        headerRight: () => (
+          <View style={{ flexDirection: 'row' }}>
+            <TouchableOpacity style={{ marginEnd: 15 }} onPress={()=>{setAlbumListModal(true)}}>
+              <Icon
+                name='playlist-add'
+                size={30}
+                color='blue'
+              />
+            </TouchableOpacity>
+            <TouchableOpacity style={{ marginEnd: 15 }} onPress={()=>deleteHandle(selectedImages)}>
+              <Icon
+                name='delete'
+                size={30}
+                color='blue'
+              />
+            </TouchableOpacity>
+          </View>
+        )
+      })
+    }
+    else {
+      navigation.setOptions({
+        headerLeft: null,
+        headerRight: () => (
+          <View>
+            <TouchableOpacity style={{ paddingEnd: 15 }} onPress={handleOpenModal}>
+              <Icon
+                name='account-circle'
+                size={30}
+                color='blue'
+              />
+            </TouchableOpacity>
+            <AccountModal isVisible={modalVisible} navigation={navigation} onClose={handleCloseModal} />
+          </View>
+        )
+      })
+    }
+  }, [modalVisible, pressSelect,selectedImages])
+
+  const userDB = refdb(rtdb, auth.currentUser.uid);
+  const userAlbums = child(userDB, "albums");
+  const albumList=[]
+  onValue(userAlbums,(snapshot)=>{
+    // console.log('snapshot',snapshot)
+    snapshot.forEach(element => {
+      const album={
+        title: element.key,
+      }
+      albumList.push(album)
+    });
+
+  })
+// console.log(albumList)
+
+const addToAlbum=(albumName)=>{
+    selectedImages.forEach(item=>{
+      const albumRef = child(userAlbums, albumName);
+  
+      // check if image already in album (not complete)
+      // const result = query(albumRef, orderByChild(''), equalTo('imageURL123'));
+      // console.log(result);
+  
+      // add image's downloadable url to album
+      const image = push(albumRef);
+      set(image, {url: item.uri});
+    })
+
+
+}
 
   return (
     <View style={{ width: '100%', height: '100%' }}>
-      <DateList storageList={storageList} navigation={navigation} setRefresh={setRefresh} navFrom={'ImageList'} refreshing={refreshing} onRefresh={onRefresh} />
+      <DateList storageList={storageList} navigation={navigation} setRefresh={setRefresh} navFrom={'ImageList'} refreshing={refreshing} onRefresh={onRefresh} pressSelect={pressSelect} selectedImages={selectedImages} setSelectedImages={setSelectedImages} onLongPress={handleSelectButton} />
 
       <FloatingButton onPress={handlerPress} text='+' />
       {/* <Button onPress={Refresh} title='refresh'/> */}
+      <AlbumListModal addToAlbum={addToAlbum} albums={albumList} visible={albumListModal} onClose={()=>setAlbumListModal(false)}/>
     </View>
   )
 }
