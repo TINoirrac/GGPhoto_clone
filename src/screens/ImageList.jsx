@@ -11,6 +11,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons'
 import AccountModal from '../components/AccountModal';
 import AlbumListModal from '../components/AlbumListModal';
 import { ref as refdb,child, onValue, push, set } from 'firebase/database';
+import { onAuthStateChanged } from 'firebase/auth';
 
 
 const Stack = createNativeStackNavigator()
@@ -323,7 +324,7 @@ const addToAlbum=(albumName)=>{
       const image = push(albumRef);
       set(image, {url: item.uri});
     })
-
+    setAlbumListModal(false)
 
 }
 

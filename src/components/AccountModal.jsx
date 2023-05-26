@@ -14,9 +14,7 @@ const AccountModal = ({ isVisible, onClose ,navigation}) => {
             unsubscribe()
         }
     }, [])
-    const onSignInPress = () => {
-        signInWithGoogle()
-    }
+
     const onSignOutPress = () => {
         signOut(auth).then(()=>{
             navigation.navigate('Login')
