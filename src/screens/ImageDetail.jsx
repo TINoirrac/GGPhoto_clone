@@ -4,11 +4,12 @@ import Swiper from 'react-native-swiper';
 import FooterBar from '../components/FooterBar';
 import FastImage from 'react-native-fast-image';
 import { deleteObject, ref, updateMetadata } from 'firebase/storage'
-import { rootStorage } from '../components/StorageConfig';
+import { auth, rootStorage, rtdb } from '../components/StorageConfig';
 import Icon from 'react-native-vector-icons/MaterialIcons'
+import { child,ref as refdb, remove } from 'firebase/database';
 
 const ImageDetail = ({ route, navigation }) => {
-  const { images, initialItem, navFrom } = route.params;
+  const { images, initialItem, navFrom ,albumTitle} = route.params;
   const [autoplay, setAutoplay] = useState(false)
   const [itemCurrent, setItemCurrent] = useState(initialItem)
   const [updatedImages, setUpdatedImages] = useState(images)
@@ -53,7 +54,7 @@ const ImageDetail = ({ route, navigation }) => {
   const restoreHandle = () => {
     const forestRef = ref(rootStorage, itemCurrent.uri)
     const newMetadata = {
-      customMetadata:null
+      customMetadata: null
     }
     updateMetadata(forestRef, newMetadata).then((metadata) => {
       // console.log(metadata.customMetadata)
@@ -65,6 +66,19 @@ const ImageDetail = ({ route, navigation }) => {
     }).catch((error) => {
       console.log(error)
     })
+  }
+
+  const deleteFromAlbum = () => {
+    const userDB = refdb(rtdb, auth.currentUser.uid);
+    const itemRef = child(userDB, 'albums/' + albumTitle + '/' + itemCurrent.parentUrl)
+    remove(itemRef)
+      .then(() => {
+        const newImages = updatedImages.filter(image => image !== itemCurrent);
+        setIsUpdatedImages(true)
+        setUpdatedImages(newImages);
+      }).catch((error => {
+        console.log(error)
+      }))
   }
 
   useEffect(() => {
@@ -123,7 +137,7 @@ const ImageDetail = ({ route, navigation }) => {
         }
         )}
       </Swiper>
-      <FooterBar onPressSlide={() => setAutoplay(!autoplay)} onPressDelete={deleteHandle} onPressDeleteForever={deleteForeverHandle} onPressRestore={restoreHandle} navFrom={navFrom} />
+      <FooterBar onPressSlide={() => setAutoplay(!autoplay)} onPressDeleteFromAlbum={deleteFromAlbum} onPressDelete={deleteHandle} onPressDeleteForever={deleteForeverHandle} onPressRestore={restoreHandle} navFrom={navFrom} />
     </View>
   );
 };

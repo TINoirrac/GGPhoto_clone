@@ -18,12 +18,10 @@ const AlbumList = ({navigation}) => {
   }, [refresh, navigation])
 
   const onRefresh = useCallback(() => {
-    // setResfreshing(true)
+
     setRefresh(new Date().toTimeString())
     console.log('refreshing....')
-    // setTimeout(() => {
-    //   setResfreshing(false)
-    // }, 2000)
+
   }, [])
 
   const handleOpenModal = () => {

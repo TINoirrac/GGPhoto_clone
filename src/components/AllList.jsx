@@ -3,10 +3,10 @@ import React, { useCallback, useEffect, useState } from 'react'
 import FastImage from 'react-native-fast-image'
 import CheckBox from '@react-native-community/checkbox'
 
-const AllList = ({ allData, navigation, navFrom, refreshing, onRefresh, pressSelect,selectedImages=[],setSelectedImages }) => {
+const AllList = ({ allData, navigation, navFrom, refreshing, onRefresh, pressSelect,selectedImages,setSelectedImages,albumTitle }) => {
+
   const handleCheck = useCallback((item) => {
     const newSelectedImages = [...selectedImages]
-    // console.log('item',item)
     if (item.isChecked) {
       newSelectedImages.splice(newSelectedImages.indexOf(item), 1)
       item.isChecked = false
@@ -24,7 +24,7 @@ const AllList = ({ allData, navigation, navFrom, refreshing, onRefresh, pressSel
     return (
       <View style={styles.item}>
         <TouchableOpacity onPress={() => {
-          navigation.navigate('ImageDetail', { images: allData, initialItem: item, navFrom: navFrom })
+          navigation.navigate('ImageDetail', { images: allData, initialItem: item, navFrom: navFrom ,albumTitle:albumTitle})
         }}>
           <FastImage
             style={styles.itemImage}
