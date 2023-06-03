@@ -2,13 +2,13 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import React from 'react'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 
-const FooterBar = ({ onPressSlide, onPressDelete, navFrom, onPressDeleteForever,onPressDeleteFromAlbum, onPressRestore }) => {
+const FooterBar = ({ onPressSlide, onPressDelete, navFrom, onPressDeleteForever,onPressDeleteFromAlbum, onPressRestore,onPressAddToAlbum }) => {
   return (
     <View>
       {
         (navFrom == 'ImageList') ? (
           <View style={styles.container}>
-            <TouchableOpacity style={styles.icon}>
+            <TouchableOpacity style={styles.icon} onPress={onPressAddToAlbum}>
               <Icon name='playlist-add' size={20} color='white' />
             </TouchableOpacity>
             <TouchableOpacity style={styles.icon} onPress={onPressSlide}>

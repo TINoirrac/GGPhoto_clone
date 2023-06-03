@@ -6,17 +6,47 @@ import FastImage from 'react-native-fast-image';
 import { deleteObject, ref, updateMetadata } from 'firebase/storage'
 import { auth, rootStorage, rtdb } from '../components/StorageConfig';
 import Icon from 'react-native-vector-icons/MaterialIcons'
-import { child,ref as refdb, remove } from 'firebase/database';
+import { child, onValue, push, ref as refdb, remove, set } from 'firebase/database';
+import AlbumListModal from '../components/AlbumListModal';
 
 const ImageDetail = ({ route, navigation }) => {
-  const { images, initialItem, navFrom ,albumTitle} = route.params;
+  const { images, initialItem, navFrom, albumTitle } = route.params;
   const [autoplay, setAutoplay] = useState(false)
   const [itemCurrent, setItemCurrent] = useState(initialItem)
   const [updatedImages, setUpdatedImages] = useState(images)
   const [isUpdatedImages, setIsUpdatedImages] = useState(false)
   const initialIndex = images.indexOf(initialItem)
+  const [albumListModal, setAlbumListModal] = useState(false)
+
   console.log('images', initialItem)
 
+  const userDB = refdb(rtdb, auth.currentUser.uid);
+  const userAlbums = child(userDB, "albums");
+  const albumList = []
+  onValue(userAlbums, (snapshot) => {
+    // console.log('snapshot',snapshot)
+    snapshot.forEach(element => {
+      const album = {
+        title: element.key,
+      }
+      albumList.push(album)
+    });
+
+  })
+
+  const addToAlbum = (albumName) => {
+    const albumRef = child(userAlbums, albumName);
+
+    // check if image already in album (not complete)
+    // const result = query(albumRef, orderByChild(''), equalTo('imageURL123'));
+    // console.log(result);
+
+    // add image's downloadable url to album
+    const image = push(albumRef);
+    set(image, { url: itemCurrent.uri });
+    setAlbumListModal(false)
+
+  }
 
   const deleteHandle = () => {
     const forestRef = ref(rootStorage, itemCurrent.uri)
@@ -137,7 +167,8 @@ const ImageDetail = ({ route, navigation }) => {
         }
         )}
       </Swiper>
-      <FooterBar onPressSlide={() => setAutoplay(!autoplay)} onPressDeleteFromAlbum={deleteFromAlbum} onPressDelete={deleteHandle} onPressDeleteForever={deleteForeverHandle} onPressRestore={restoreHandle} navFrom={navFrom} />
+      <FooterBar onPressAddToAlbum={() => setAlbumListModal(true)} onPressSlide={() => setAutoplay(!autoplay)} onPressDeleteFromAlbum={deleteFromAlbum} onPressDelete={deleteHandle} onPressDeleteForever={deleteForeverHandle} onPressRestore={restoreHandle} navFrom={navFrom} />
+      <AlbumListModal addToAlbum={addToAlbum} albums={albumList} visible={albumListModal} onClose={() => setAlbumListModal(false)} />
     </View>
   );
 };

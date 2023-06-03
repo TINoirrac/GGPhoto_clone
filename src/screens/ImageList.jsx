@@ -10,22 +10,8 @@ import DateList from '../components/DateList';
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import AccountModal from '../components/AccountModal';
 import AlbumListModal from '../components/AlbumListModal';
-import { ref as refdb,child, onValue, push, set } from 'firebase/database';
+import { ref as refdb, child, onValue, push, set } from 'firebase/database';
 import { onAuthStateChanged } from 'firebase/auth';
-
-
-const Stack = createNativeStackNavigator()
-
-// const DATA = [
-//   {
-//     title: 'Movies',
-//     data: []
-//   },
-//   {
-//     title: 'Pictures',
-//     data: [['https://reactnative.dev/img/tiny_logo.png', 'https://reactnative.dev/img/tiny_logo.png', 'https://reactnative.dev/img/tiny_logo.png', 'https://reactnative.dev/img/tiny_logo.png']]
-//   }
-// ]
 
 const ImageList = ({ navigation, route }) => {
   // Firebase-------------------------------------------------------------
@@ -38,7 +24,7 @@ const ImageList = ({ navigation, route }) => {
   const [selectedImages, setSelectedImages] = useState([])
 
   const [modalVisible, setModalVisible] = useState(false)
-  const [albumListModal,setAlbumListModal]=useState(false)
+  const [albumListModal, setAlbumListModal] = useState(false)
 
   const handleOpenModal = () => {
     setModalVisible(true)
@@ -50,9 +36,6 @@ const ImageList = ({ navigation, route }) => {
   // console.log('isUpdatedImages', navigation)
 
   useEffect(() => {
-    // if(route.params?.updatedImages)
-    //   setStorageList(route.params.updatedImages)
-    // else
     setResfreshing(true)
     refreshMediaList()
   }, [refresh, navigation])
@@ -219,9 +202,9 @@ const ImageList = ({ navigation, route }) => {
 
   // console.log('selectedImages',selectedImages)
   const deleteHandle = (data) => {
-    console.log('delete',data)
+    console.log('delete', data)
     data.forEach(item => {
-      console.log('item',item)
+      console.log('item', item)
       const forestRef = ref(rootStorage, item.uri)
       const newMetadata = {
         customMetadata: {
@@ -260,14 +243,14 @@ const ImageList = ({ navigation, route }) => {
         ),
         headerRight: () => (
           <View style={{ flexDirection: 'row' }}>
-            <TouchableOpacity style={{ marginEnd: 15 }} onPress={()=>{setAlbumListModal(true)}}>
+            <TouchableOpacity style={{ marginEnd: 15 }} onPress={() => { setAlbumListModal(true) }}>
               <Icon
                 name='playlist-add'
                 size={30}
                 color='blue'
               />
             </TouchableOpacity>
-            <TouchableOpacity style={{ marginEnd: 15 }} onPress={()=>deleteHandle(selectedImages)}>
+            <TouchableOpacity style={{ marginEnd: 15 }} onPress={() => deleteHandle(selectedImages)}>
               <Icon
                 name='delete'
                 size={30}
@@ -284,49 +267,57 @@ const ImageList = ({ navigation, route }) => {
         headerRight: () => (
           <View>
             <TouchableOpacity style={{ paddingEnd: 15 }} onPress={handleOpenModal}>
-              <Icon
-                name='account-circle'
-                size={30}
-                color='blue'
-              />
+              {
+                (auth.currentUser.photoURL) ? (
+                  <Image style={styles.accountAvatar} source={{ uri: auth.currentUser.photoURL }} />
+
+                ) : (
+
+                  <Icon
+                    name='account-circle'
+                    size={30}
+                    color='blue'
+                  />
+                )
+              }
             </TouchableOpacity>
             <AccountModal isVisible={modalVisible} navigation={navigation} onClose={handleCloseModal} />
           </View>
         )
       })
     }
-  }, [modalVisible, pressSelect,selectedImages])
+  }, [modalVisible, pressSelect, selectedImages])
 
   const userDB = refdb(rtdb, auth.currentUser.uid);
   const userAlbums = child(userDB, "albums");
-  const albumList=[]
-  onValue(userAlbums,(snapshot)=>{
+  const albumList = []
+  onValue(userAlbums, (snapshot) => {
     // console.log('snapshot',snapshot)
     snapshot.forEach(element => {
-      const album={
+      const album = {
         title: element.key,
       }
       albumList.push(album)
     });
 
   })
-// console.log(albumList)
+  // console.log(albumList)
 
-const addToAlbum=(albumName)=>{
-    selectedImages.forEach(item=>{
+  const addToAlbum = (albumName) => {
+    selectedImages.forEach(item => {
       const albumRef = child(userAlbums, albumName);
-  
+
       // check if image already in album (not complete)
       // const result = query(albumRef, orderByChild(''), equalTo('imageURL123'));
       // console.log(result);
-  
+
       // add image's downloadable url to album
       const image = push(albumRef);
-      set(image, {url: item.uri});
+      set(image, { url: item.uri });
     })
     setAlbumListModal(false)
 
-}
+  }
 
   return (
     <View style={{ width: '100%', height: '100%' }}>
@@ -334,7 +325,7 @@ const addToAlbum=(albumName)=>{
 
       <FloatingButton onPress={handlerPress} text='+' />
       {/* <Button onPress={Refresh} title='refresh'/> */}
-      <AlbumListModal addToAlbum={addToAlbum} albums={albumList} visible={albumListModal} onClose={()=>setAlbumListModal(false)}/>
+      <AlbumListModal addToAlbum={addToAlbum} albums={albumList} visible={albumListModal} onClose={() => setAlbumListModal(false)} />
     </View>
   )
 }
@@ -362,6 +353,11 @@ const styles = StyleSheet.create({
   itemImage: {
     width: 100,
     height: 100
+  },
+  accountAvatar: {
+    width: 30,
+    height: 30,
+    borderRadius: 24,
   },
 });
 
